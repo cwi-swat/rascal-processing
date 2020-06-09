@@ -15,13 +15,13 @@ keyword Keywords
   | "double" | "float" | "long" | "clear" | "PGraphics" | "hint" | "clip" | "blendMode" | "beginDraw"
   | "endDraw" | "noClip" | "String" |"ARROW" | "CROSS" | "HAND" | "MOVE" | "TEXT" | "WAIT" | "delay"
   | "cursor" | "fullScreen" | "frameRate" | "size" | "noCursor" | "smooth" | "noSmooth" | "pixelDensity"
-  | "height" | "width" | "mouseX" | "mouseY" | "fill" | "noFill" | "colorMode" | "noStroke"
+  | "height" | "width" | "mouseX" | "mouseY" | "fill" | "noFill" | "colorMode" | "noStroke" | "PImage"
   ;
   
 syntax Phrase
-  = Expression ";"
+  = //Expression ";"
   //| VarDecl
-  | Statement
+   Statement
   | assoc Phrase Phrase
   ;
 
@@ -77,19 +77,35 @@ syntax Statement
 
 syntax BuiltInFunction
   = ColorSetting 
+  | ColorCreating
   | Rendering
   | Shape
   | Environment
   | Input
+  | Transform
   ;
+  
+syntax Transform
+  = pushMatrix: "pushMatrix" "(" ")"
+  | popMatrix: "popMatrix" "(" ")"
+  | translate2d: "translate" "(" Expression x "," Expression y ")"
+  | translate3d: "translate" "(" Expression x "," Expression y "," Expression z ")"
+  ;  
   
 syntax Input
   = mouseX: "mouseX"
   | mouseY: "mouseY"
   ;
   
+syntax ColorCreating
+  = color: "color" "(" Expression gray ")"
+  | color2: "color" "(" Expression gray "," Expression alpha ")"
+  | color3: "color" "(" Expression v1 "," Expression v2 "," Expression v3 ")"
+  | color4: "color" "(" Expression v1 "," Expression v2 "," Expression v3 "," Expression alpha ")"
+  ;  
+  
 syntax Environment
-  = size: "size" "(" IntegerValue width "," IntegerValue height ")" 
+  = size: "size" "(" Expression width "," Expression height ")" 
   | frameRate: "frameRate" "(" FloatValue fps")"
   | fullScreen: "fullscreen" "(" ")"
   | cursor: "cursor" "(" CursorType typ "," IntegerValue x "," IntegerValue y ")"
@@ -122,8 +138,8 @@ syntax Shape
   | "point" "(" FloatValue x "," FloatValue y "," FloatValue z ")"
   | "quad" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 "," FloatValue x3 "," FloatValue y3 "," FloatValue x4 "," FloatValue y4 ")"
   | "rect" "(" Expression x "," Expression y "," Expression width "," Expression height ")"
-  | "rect" "(" FloatValue x "," FloatValue y "," FloatValue width "," FloatValue height "," FloatValue radius ")"
-  | "rect" "(" FloatValue x "," FloatValue y "," FloatValue width "," FloatValue height "," FloatValue tlradius "," FloatValue trradius "," FloatValue brradius "," FloatValue blradius ")"
+  | "rect" "(" Expression x "," Expression y "," Expression width "," Expression height "," Expression radius ")"
+  | "rect" "(" Expression x "," Expression y "," Expression width "," Expression height "," Expression tlradius "," Expression trradius "," Expression brradius "," Expression blradius ")"
   | "square" "(" FloatValue x "," FloatValue y "," FloatValue extent ")"
   | "triangle" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 "," FloatValue x3 "," FloatValue y3 ")"
   ;
@@ -143,12 +159,12 @@ syntax Rendering
 syntax ColorSetting
   = Background
   | clear: "clear" "("")"
-  | fill: "fill" "(" IntegerValue rgb ")"
-  | fill2: "fill" "(" IntegerValue rgb"," FloatValue alpha")"
-  | fill3: "fill" "(" FloatValue gray ")"
-  | fill4: "fill" "(" FloatValue gray "," FloatValue alpha")"
+  | fill: "fill" "(" Expression rgb ")"
+  | fill2: "fill" "(" Expression rgb"," Expression alpha")"
+  //| fill3: "fill" "(" Expression gray ")"
+  //| fill4: "fill" "(" Expression gray "," Expression alpha")"
   | fill5: "fill" "(" Expression v1 "," Expression v2  "," Expression v3")"
-  | fill6: "fill" "(" FloatValue v1 "," FloatValue v2  "," FloatValue v3  "," FloatValue alpha")"
+  | fill6: "fill" "(" Expression v1 "," Expression v2  "," Expression v3  "," Expression alpha")"
   | noFill: "noFill" "(" ")"
   | colorMode: "colorMode" "(" ColorMode")"
   | colorMode2: "colorMode" "(" ColorMode "," FloatValue max ")"
@@ -163,9 +179,10 @@ syntax ColorMode
   ;
   
 syntax Background
-  = "background" "(" IntegerValue ")"
-  | "background" "(" FloatValue ")"
-  //| "background" "(" PImage ")"
+  = "background" "(" Expression rgb ")"
+  | "background" "(" Expression rgb "," Expression alpha")"
+  | "background" "(" Expression v1 "," Expression v2 "," Expression v3 ")"
+  | "background" "(" Expression v1 "," Expression v2 "," Expression v3 "," Expression alpha ")"
   ;
   
 syntax VarDecl
@@ -190,6 +207,7 @@ syntax Type
   | "flot"
   | "long"
   | "PGraphics"
+  | "PImage"
   | "String"
   > Id \Keywords
   ;  
