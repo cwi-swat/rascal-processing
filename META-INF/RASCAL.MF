@@ -1,8 +1,9 @@
 Manifest-Version: 0.0.1
 Main-Function: main
 Courses: courses
-Project-Name: processing
+Project-Name: rascal-processing
 Require-Libraries: 
 Main-Module: Plugin
 Source: src
+Require-Libraries: |lib://kogi|, |lib://rascal_eclipse|
 
