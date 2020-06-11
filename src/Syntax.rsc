@@ -8,7 +8,8 @@ extend lang::std::Layout;
 //  ;
 //  
 
-
+start syntax Program
+  = Phrase;
 
 keyword Keywords
   = "void" | "setup" | "draw" | "int" | "background" | "boolean" | "char" | "byte" | "color"
@@ -19,70 +20,65 @@ keyword Keywords
   ;
   
 syntax Phrase
-  = //Expression ";"
-  //| VarDecl
-   Statement
-  | assoc Phrase Phrase
+  = stmt: Statement stm
+  | assoc operator: Phrase l Phrase r
   ;
 
 syntax SetupFunction
-  = "void" "setup" "(" ")" Statement 
+  = setup: "void" "setup" "(" ")" Statement body
   ;
   
 syntax DrawFunction
-  = "void" "draw" "(" ")" Statement 
+  = draw: "void" "draw" "(" ")" Statement body
   ;
   
 syntax FunctionDecl
-  = "void" Id "(" {Parameter ","}* ")" Statement
-  ;  
+  = funcDecl: "void" Id name \Keywords "(" {Parameter ","}* params ")" Statement body
+  ;
+  
   
 syntax Parameter
-  = Type tipo Id id
+  = param: Type tipo Id id
   ;
 
 syntax Expression
-  = BuiltInFunction builtinFunctions
-  //| VarDecl varDecls
-  //| Id id \ Keywords
-  | bracket "(" Expression ")"
-  > left Expression "*" Expression
-  > left Expression "/" Expression
-  >
-  left (
-      add: Expression "+" Expression
-    | sub: Expression "-" Expression
+  = builFuncs: BuiltInFunction builtinFunctions
+  | bracket parenthesis: "(" Expression exp ")"
+  > left times: Expression lhs "*" Expression rhs
+  > left division: Expression lhs "/" Expression rhs
+  > left (
+      add: Expression lhs "+" Expression rhs
+    | sub: Expression lhs "-" Expression rhs
   )
-  > non-assoc Expression "\<" Expression
-  > non-assoc Expression "\>" Expression
-  > left Expression "&&" Expression
-  > left Expression "!=" Expression
-  //> left Expression "." Expression
-  > Value val
-  //| Expression "." Id "(" {Expression ","}* ")"
+  > non-assoc less: Expression lhs "\<" Expression rhs
+  > non-assoc higher: Expression lhs "\>" Expression rhs
+  > left and: Expression lhs "&&" Expression rhs
+  > left notEqual: Expression lhs "!=" Expression rhs
+  | val: Value val
   ;
 
 syntax Statement
-  = "{" Statement* "}"
-  | FunctionDecl
-  | Expression ";"
-  | \while: "while" "(" Expression ")" Statement
-  | \for: "for" "(" Expression init ";" Expression test ";" Expression update ")" Statement
+  = stmts: "{" Statement* "}"
+  | draw: DrawFunction draw
+  | setup: SetupFunction setup
+  | function: FunctionDecl function
+  | exp: Expression expr ";"
+  | \while: "while" "(" Expression cond ")" Statement body
+  | \for: "for" "(" Expression init ";" Expression test ";" Expression update ")" Statement body
   | \if: "if" "(" Expression test ")" Statement ifBody 
   | ifElse: "if" "(" Expression test ")" Statement ifBody "else" Statement elseBody
-  | assign: Id "=" Expression ";"
-  | VarDecl ";"
-  //| \switch: "switch"  "(" Expression ")" SwitchBlock
+  | assign: Id name "=" Expression val ";"
+  | vars: VarDecl ";"
   ;
 
 syntax BuiltInFunction
-  = ColorSetting 
-  | ColorCreating
-  | Rendering
-  | Shape
-  | Environment
-  | Input
-  | Transform
+  = setting: ColorSetting colorSetting
+  | creating: ColorCreating colorCreating
+  | render: Rendering rendering
+  | shape: Shape shape
+  | env: Environment environment
+  | input: Input input
+  | trans: Transform transform
   ;
   
 syntax Transform
@@ -120,56 +116,54 @@ syntax Environment
   ;
   
 syntax CursorType
-  = "ARROW"
-  | "CROSS"
-  | "HAND"
-  | "MOVE"
-  | "TEXT"
-  | "WAIT" 
+  = arrow: "ARROW"
+  | cross: "CROSS"
+  | hand: "HAND"
+  | move: "MOVE"
+  | text: "TEXT"
+  | wait: "WAIT" 
   ;
   
 syntax Shape
-  = "arc" "(" FloatValue x "," FloatValue y "," FloatValue width "," FloatValue height "," FloatValue start  "," FloatValue stop ")" 
-  | "circle" "(" FloatValue x "," FloatValue y "," FloatValue extent ")"
-  | "ellipse" "(" FloatValue x "," FloatValue y "," FloatValue width "," FloatValue height ")"
-  | "line" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 ")"
-  | "line" "(" FloatValue x1 "," FloatValue y1 "," FloatValue z1 "," FloatValue x2 "," FloatValue y2 "," FloatValue z2 ")"
-  | "point" "(" FloatValue x "," FloatValue y ")"
-  | "point" "(" FloatValue x "," FloatValue y "," FloatValue z ")"
-  | "quad" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 "," FloatValue x3 "," FloatValue y3 "," FloatValue x4 "," FloatValue y4 ")"
-  | "rect" "(" Expression x "," Expression y "," Expression width "," Expression height ")"
-  | "rect" "(" Expression x "," Expression y "," Expression width "," Expression height "," Expression radius ")"
-  | "rect" "(" Expression x "," Expression y "," Expression width "," Expression height "," Expression tlradius "," Expression trradius "," Expression brradius "," Expression blradius ")"
-  | "square" "(" FloatValue x "," FloatValue y "," FloatValue extent ")"
-  | "triangle" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 "," FloatValue x3 "," FloatValue y3 ")"
+  = arc: "arc" "(" FloatValue x "," FloatValue y "," FloatValue width "," FloatValue height "," FloatValue start  "," FloatValue stop ")" 
+  | circle: "circle" "(" FloatValue x "," FloatValue y "," FloatValue extent ")"
+  | ellipse: "ellipse" "(" FloatValue x "," FloatValue y "," FloatValue width "," FloatValue height ")"
+  | line: "line" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 ")"
+  | line2: "line" "(" FloatValue x1 "," FloatValue y1 "," FloatValue z1 "," FloatValue x2 "," FloatValue y2 "," FloatValue z2 ")"
+  | point: "point" "(" FloatValue x "," FloatValue y ")"
+  | point2: "point" "(" FloatValue x "," FloatValue y "," FloatValue z ")"
+  | quad: "quad" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 "," FloatValue x3 "," FloatValue y3 "," FloatValue x4 "," FloatValue y4 ")"
+  | rect: "rect" "(" Expression x "," Expression y "," Expression width "," Expression height ")"
+  | rect2:"rect" "(" Expression x "," Expression y "," Expression width "," Expression height "," Expression radius ")"
+  | rect3: "rect" "(" Expression x "," Expression y "," Expression width "," Expression height "," Expression tlradius "," Expression trradius "," Expression brradius "," Expression blradius ")"
+  | square: "square" "(" FloatValue x "," FloatValue y "," FloatValue extent ")"
+  | triangle: "triangle" "(" FloatValue x1 "," FloatValue y1 "," FloatValue x2 "," FloatValue y2 "," FloatValue x3 "," FloatValue y3 ")"
   ;
   
 syntax Rendering
-  = "createGraphics" "(" IntegerValue w "," IntegerValue h ")"
-  | "createGraphics" "(" IntegerValue w "," IntegerValue h "," StringValue renderer ")"
-  | "createGraphics" "(" IntegerValue w "," IntegerValue h "," StringValue renderer "," StringValue path ")"
-  | "beginDraw" "(" ")"
-  | "endDraw" "(" ")" 
-  | "blendMode" "(" IntegerValue mode ")"
-  | "clip" "(" FloatValue x"," FloatValue y "," FloatValue width "," FloatValue height")"
-  | "hint" "(" IntegerValue hint_mode ")"
-  | "noClip""("")"
+  = createGraphics: "createGraphics" "(" IntegerValue w "," IntegerValue h ")"
+  | createGraphics2: "createGraphics" "(" IntegerValue w "," IntegerValue h "," StringValue renderer ")"
+  | createGraphics3: "createGraphics" "(" IntegerValue w "," IntegerValue h "," StringValue renderer "," StringValue path ")"
+  | beginDraw: "beginDraw" "(" ")"
+  | endDraw:"endDraw" "(" ")" 
+  | blendMode: "blendMode" "(" IntegerValue mode ")"
+  | clip: "clip" "(" FloatValue x"," FloatValue y "," FloatValue width "," FloatValue height")"
+  | hint: "hint" "(" IntegerValue hint_mode ")"
+  | noClip: "noClip""("")"
   ;  
   
 syntax ColorSetting
-  = Background
+  = background: Background
   | clear: "clear" "("")"
   | fill: "fill" "(" Expression rgb ")"
   | fill2: "fill" "(" Expression rgb"," Expression alpha")"
-  //| fill3: "fill" "(" Expression gray ")"
-  //| fill4: "fill" "(" Expression gray "," Expression alpha")"
-  | fill5: "fill" "(" Expression v1 "," Expression v2  "," Expression v3")"
-  | fill6: "fill" "(" Expression v1 "," Expression v2  "," Expression v3  "," Expression alpha")"
+  | fill3: "fill" "(" Expression v1 "," Expression v2  "," Expression v3")"
+  | fill4: "fill" "(" Expression v1 "," Expression v2  "," Expression v3  "," Expression alpha")"
   | noFill: "noFill" "(" ")"
   | colorMode: "colorMode" "(" ColorMode")"
-  | colorMode2: "colorMode" "(" ColorMode "," FloatValue max ")"
+  | colorMode2: "colorMode" "(" ColorMode "," Expression max ")"
   | colorMode3: "colorMode" "(" ColorMode "," Expression max "," Expression max2 "," Expression max3 ")"
-  | colorMode3: "colorMode" "(" ColorMode "," FloatValue max "," FloatValue max2 "," FloatValue max3 "," FloatValue alpha")"
+  | colorMode3: "colorMode" "(" ColorMode "," Expression max "," Expression max2 "," Expression max3 "," Expression alpha")"
   | noStroke: "noStroke" "(" ")"
   ;
   
@@ -179,37 +173,37 @@ syntax ColorMode
   ;
   
 syntax Background
-  = "background" "(" Expression rgb ")"
-  | "background" "(" Expression rgb "," Expression alpha")"
-  | "background" "(" Expression v1 "," Expression v2 "," Expression v3 ")"
-  | "background" "(" Expression v1 "," Expression v2 "," Expression v3 "," Expression alpha ")"
+  = background: "background" "(" Expression rgb ")"
+  | background2:"background" "(" Expression rgb "," Expression alpha")"
+  | background3: "background" "(" Expression v1 "," Expression v2 "," Expression v3 ")"
+  | background4: "background" "(" Expression v1 "," Expression v2 "," Expression v3 "," Expression alpha ")"
   ;
   
 syntax VarDecl
-  = Type Id
-  | Type Id "=" Expression
+  = decl: Type tipo Id name
+  | declAss: Type tipo Id name "=" Expression val
   ;
   
 syntax Value
-  = IntegerValue
-  | FloatValue
-  | StringValue
-  > Id \ Keywords
+  = integer: IntegerValue
+  | float: FloatValue
+  | string: StringValue
+  > id: Id \ Keywords
   ;
   
 syntax Type
-  = "int"
-  | "boolean"
-  | "byte"
-  | "char"
-  | "color"
-  | "double"
-  | "flot"
-  | "long"
-  | "PGraphics"
-  | "PImage"
-  | "String"
-  > Id \Keywords
+  = \int: "int"
+  | \bool: "boolean"
+  | byte: "byte"
+  | char: "char"
+  | color: "color"
+  | double: "double"
+  | float: "float"
+  | long: "long"
+  | pgGraphics: "PGraphics"
+  | pImage: "PImage"
+  | string: "String"
+  | id: Id \Keywords
   ;  
   
 lexical IntegerValue
