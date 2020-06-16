@@ -8,8 +8,8 @@ extend lang::std::Layout;
 //  ;
 //  
 
-start syntax Program
-  = Phrase;
+//start syntax Program
+//  = Phrase;
 
 keyword Keywords
   = "void" | "setup" | "draw" | "int" | "background" | "boolean" | "char" | "byte" | "color"
@@ -19,7 +19,7 @@ keyword Keywords
   | "height" | "width" | "mouseX" | "mouseY" | "fill" | "noFill" | "colorMode" | "noStroke" | "PImage"
   ;
   
-syntax Phrase
+start syntax Phrase
   = stmt: Statement stm
   | assoc operator: Phrase l Phrase r
   ;
@@ -36,13 +36,19 @@ syntax FunctionDecl
   = funcDecl: "void" Id name \Keywords "(" {Parameter ","}* params ")" Statement body
   ;
   
-  
 syntax Parameter
   = param: Type tipo Id id
   ;
 
+syntax Value
+  = integer: IntegerValue
+  | float: FloatValue
+  | string: StringValue
+  | id: Id \ Keywords
+  ;
+  
 syntax Expression
-  = builFuncs: BuiltInFunction builtinFunctions
+  = builtFuncs: BuiltInFunction builtinFunctions
   | bracket parenthesis: "(" Expression exp ")"
   > left times: Expression lhs "*" Expression rhs
   > left division: Expression lhs "/" Expression rhs
@@ -54,11 +60,12 @@ syntax Expression
   > non-assoc higher: Expression lhs "\>" Expression rhs
   > left and: Expression lhs "&&" Expression rhs
   > left notEqual: Expression lhs "!=" Expression rhs
-  | val: Value val
+  | vals: Value vals
   ;
 
 syntax Statement
-  = stmts: "{" Statement* "}"
+  = stmts: "{" Statement* stmts "}"
+  //| func: Statement l Statement r
   | draw: DrawFunction draw
   | setup: SetupFunction setup
   | function: FunctionDecl function
@@ -68,7 +75,9 @@ syntax Statement
   | \if: "if" "(" Expression test ")" Statement ifBody 
   | ifElse: "if" "(" Expression test ")" Statement ifBody "else" Statement elseBody
   | assign: Id name "=" Expression val ";"
-  | vars: VarDecl ";"
+  //| vars: VarDecl ";"
+  | decl: Type tipo Id name ";"
+  | decl2: Type tipo Id name "=" Expression val ";"
   ;
 
 syntax BuiltInFunction
@@ -102,14 +111,14 @@ syntax ColorCreating
   
 syntax Environment
   = size: "size" "(" Expression width "," Expression height ")" 
-  | frameRate: "frameRate" "(" FloatValue fps")"
+  | frameRate: "frameRate" "(" Expression fps")"
   | fullScreen: "fullscreen" "(" ")"
-  | cursor: "cursor" "(" CursorType typ "," IntegerValue x "," IntegerValue y ")"
-  | delay: "delay" "(" IntegerValue napTime ")"
+  | cursor: "cursor" "(" CursorType typ "," Expression x "," Expression y ")"
+  | delay: "delay" "(" Expression napTime ")"
   | noCursor: "noCursor" "(" ")"
-  | smooth: "smooth" "(" IntegerValue level")"
+  | smooth: "smooth" "(" Expression level")"
   | noSmooth: "noSmooth" "(" ")"
-  | pixelDensity: "pixelDensity" "(" IntegerValue density ")"
+  | pixelDensity: "pixelDensity" "(" Expression density ")"
   | width: "width"
   | height: "height"
   | focused: "focused"
@@ -179,18 +188,6 @@ syntax Background
   | background4: "background" "(" Expression v1 "," Expression v2 "," Expression v3 "," Expression alpha ")"
   ;
   
-syntax VarDecl
-  = decl: Type tipo Id name
-  | declAss: Type tipo Id name "=" Expression val
-  ;
-  
-syntax Value
-  = integer: IntegerValue
-  | float: FloatValue
-  | string: StringValue
-  > id: Id \ Keywords
-  ;
-  
 syntax Type
   = \int: "int"
   | \bool: "boolean"
@@ -207,8 +204,9 @@ syntax Type
   ;  
   
 lexical IntegerValue
-  =[+\-]? [0-9]+ !>> [0-9]
-  ;
+ = [0-9]+;
+  //=[+\-]? [0-9]+ !>> [0-9]
+  
   
 lexical FloatValue
   = [0-9]+ "." [0-9]+;
